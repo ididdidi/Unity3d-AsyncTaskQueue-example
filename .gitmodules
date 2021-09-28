@@ -1,0 +1,3 @@
+[submodule "Assets/Source/Code/AsyncTaskQueue"]
+	path = Assets/Source/Code/AsyncTaskQueue
+	url = https://github.com/mofrison/AsyncTaskQueue.git
