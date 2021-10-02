@@ -14,11 +14,13 @@ namespace ru.mofrison.Unity3d
         async void Start()
         {
             // Add tasks to the queue 
-            taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 1));
-            taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 2));
-            taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 3), AsyncTask.Priority.High);
-            taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 4));
-            taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 5), AsyncTask.Priority.Interrupt);
+            for (int i=0; i< 10; i++)
+            {
+                var index = i;
+                var priority = i % 4 != 0 ? AsyncTask.Priority.Default : AsyncTask.Priority.High;
+                taskQueue.Add((cancellationToken) => TestTask(cancellationToken, index), priority);
+            }
+            taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 10), AsyncTask.Priority.Interrupt);
 
             // Take the first task and start the loop until all tasks in the queue are completed 
             var asyncTask = taskQueue.GetNext();
@@ -45,7 +47,7 @@ namespace ru.mofrison.Unity3d
                 N = n;
                 // Add a task already at runtime
                 taskQueue.Add((ct) => TestTask(ct, n), AsyncTask.Priority.Interrupt);
-
+        
                 if (taskQueue.NextIsRedy)
                 {
                     // Run the added task, if possible
