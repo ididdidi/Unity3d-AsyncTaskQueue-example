@@ -7,11 +7,11 @@ namespace ru.mofrison.Unity3d
 {
     public class AsyncTaskManager : MonoBehaviour
     {
-        private readonly AsyncTaskQueue taskQueue = new AsyncTaskQueue(2);
+        private readonly AsyncTaskQueue taskQueue = new AsyncTaskQueue();
         private int N = 0;
 
         // Start is called before the first frame update
-        async void Start()
+        void Start()
         {
             // Add tasks to the queue 
             for (int i=0; i< 10; i++)
@@ -21,20 +21,22 @@ namespace ru.mofrison.Unity3d
                 taskQueue.Add((cancellationToken) => TestTask(cancellationToken, index), priority);
             }
             taskQueue.Add((cancellationToken) => TestTask(cancellationToken, 10), AsyncTask.Priority.Interrupt);
+        }
 
-            // Take the first task and start the loop until all tasks in the queue are completed 
-            var asyncTask = taskQueue.GetNext();
-            while (asyncTask != null)
+        // Update is called once per frame
+        async void Update()
+        {
+            if (taskQueue.NextIsRedy)
             {
-                await asyncTask.Run();
+                var task = taskQueue.GetNext();
                 try
                 {
-                    // Retrieve the next item and repeat the loop
-                    asyncTask = taskQueue.GetNext();
+                    await task.Run();
                 }
-                catch (AsyncTaskQueue.Exception e) 
+                catch (AsyncTaskQueue.Exception e)
                 {
                     Debug.LogError(e.Message);
+                    taskQueue.Add(task);
                 }
             }
         }
@@ -47,12 +49,6 @@ namespace ru.mofrison.Unity3d
                 N = n;
                 // Add a task already at runtime
                 taskQueue.Add((ct) => TestTask(ct, n), AsyncTask.Priority.Interrupt);
-        
-                if (taskQueue.NextIsRedy)
-                {
-                    // Run the added task, if possible
-                    taskQueue.GetNext().Run();
-                }
             }
 
             await Task.Run(() => {
